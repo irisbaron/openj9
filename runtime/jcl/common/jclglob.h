@@ -40,6 +40,8 @@ typedef struct JniIDCache {
 	jmethodID MID_com_ibm_lang_management_GarbageCollectorMXBeanImpl_getName;
 	
 	jmethodID MID_com_ibm_lang_management_SysinfoCpuTime_getCpuUtilization_init;
+    
+    jmethodID MID_com_ibm_lang_management_SysinfoCpuLoad_getCpuLoad_init;
 	
 	jmethodID MID_java_lang_reflect_Parameter_init;
 

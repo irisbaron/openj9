@@ -26,9 +26,8 @@ import com.ibm.lang.management.CpuLoadCalculationConstants;
 
 final class CpuUtilizationHelper implements CpuLoadCalculationConstants {
 
-	SysinfoCpuTime oldestTime = null;
-	SysinfoCpuTime interimTime = null;
-	SysinfoCpuTime latestTime = null;
+	SysinfoCpuLoad cpuLoadObj = null;
+	
 
 	/**
 	 * Returns the CPU utilization, i.e. fraction of the time spent in user or system/privileged mode, since the last call to getSystemCpuLoad() on this object.  
@@ -45,64 +44,21 @@ final class CpuUtilizationHelper implements CpuLoadCalculationConstants {
 	synchronized double getSystemCpuLoad() {
 		double cpuLoad = ERROR_VALUE;
 
-		latestTime = SysinfoCpuTime.getCpuUtilizationImpl();
+		cpuLoadObj = SysinfoCpuTime.getCpuLoadImpl();
 		/* the native had problems creating the object */
-		if (null == latestTime) {
+		if (null == cpuLoadObj) {
 			return INTERNAL_ERROR;
 		}
 
 		/* not supported on this platform or user does not have sufficient rights */
-		int status = latestTime.getStatus();
+		int status = cpuLoadObj.getStatus();
 		if (status < 0) {
 			return status;
 		}
 
-		if (null == oldestTime) { /* first call to this method */
-			oldestTime = interimTime = latestTime;
-			return ERROR_VALUE;
-		}
-
-		/* calculate using the most recent value in the history */
-		if ((latestTime.getTimestamp() - interimTime.getTimestamp()) >= MINIMUM_INTERVAL) {
-			cpuLoad = calculateCpuLoad(latestTime, interimTime);
-			if (cpuLoad >= 0.0) { /* no errors detected in the statistics */
-				oldestTime = interimTime;
-				interimTime = latestTime; /* next time we'll use the oldestTime */
-				return cpuLoad;
-			} else {
-				interimTime = latestTime;
-				/*
-				 * either the latest time or the interim time are bogus. 
-				 * Discard the interim value and try with the oldest value. 
-				 */
-			}
-		}
-
-		if ((latestTime.getTimestamp() - oldestTime.getTimestamp()) >= MINIMUM_INTERVAL) {
-			cpuLoad = calculateCpuLoad(latestTime, oldestTime);
-			if (cpuLoad < 0) { /* the stats look bogus.  Discard them */
-				oldestTime = latestTime;
-			}
-		}
-
-		return cpuLoad;
+        
+		return cpuLoadObj.cpuLoad;
 	}
 
-	/**
-	 * Validate the timing information in the two records and calculate the CPU utilization
-	 * per CPU over that interval.
-	 * @param endRecord timing record for the end of the interval
-	 * @param startRecord timing record for the start of the interval
-	 * @return number in [0.0, 1.0], or ERROR_VALUE in case of error
-	 */
-	private static double calculateCpuLoad(SysinfoCpuTime endRecord, SysinfoCpuTime startRecord) {
-		double timestampDelta = endRecord.getTimestamp() - startRecord.getTimestamp();
-		double cpuDelta = endRecord.getCpuTime() - startRecord.getCpuTime();
-		if ((timestampDelta <= 0) || (cpuDelta < 0)) {
-			return ERROR_VALUE; /* the stats are invalid */
-		}
-		/* ensure the load can't go over 1.0 */
-		return Math.min(cpuDelta / (endRecord.getNumberOfCpus() * timestampDelta), 1.0);
-	}
 
 }
