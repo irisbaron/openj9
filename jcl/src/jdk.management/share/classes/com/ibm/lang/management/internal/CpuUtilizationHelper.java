@@ -44,7 +44,7 @@ final class CpuUtilizationHelper implements CpuLoadCalculationConstants {
 	synchronized double getSystemCpuLoad() {
 		double cpuLoad = ERROR_VALUE;
 
-		cpuLoadObj = SysinfoCpuTime.getCpuLoadImpl();
+		cpuLoadObj = SysinfoCpuLoad.getCpuLoadImpl();
 		/* the native had problems creating the object */
 		if (null == cpuLoadObj) {
 			return INTERNAL_ERROR;
@@ -57,7 +57,7 @@ final class CpuUtilizationHelper implements CpuLoadCalculationConstants {
 		}
 
         
-		return cpuLoadObj.cpuLoad;
+		return cpuLoadObj.getCpuLoad();
 	}
 
 

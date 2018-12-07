@@ -1,4 +1,4 @@
-/*[INCLUDE-IF Sidecar16]*/
+//*[INCLUDE-IF Sidecar16]*/
 /*******************************************************************************
  * Copyright (c) 2001, 2016 IBM Corp. and others
  *
